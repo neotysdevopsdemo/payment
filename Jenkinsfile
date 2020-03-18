@@ -86,19 +86,7 @@ pipeline {
         }
 
     }
-   /* stage('DT Deploy Event') {
-        when {
-            expression {
-            return env.BRANCH_NAME ==~ 'release/.*' || env.BRANCH_NAME ==~'master'
-            }
-        }
-        steps {
-          container("curl") {
-            // send custom deployment event to Dynatrace
-            sh "curl -X POST \"$DT_TENANT_URL/api/v1/events?Api-Token=$DT_API_TOKEN\" -H \"accept: application/json\" -H \"Content-Type: application/json\" -d \"{ \\\"eventType\\\": \\\"CUSTOM_DEPLOYMENT\\\", \\\"attachRules\\\": { \\\"tagRule\\\" : [{ \\\"meTypes\\\" : [\\\"SERVICE\\\"], \\\"tags\\\" : [ { \\\"context\\\" : \\\"CONTEXTLESS\\\", \\\"key\\\" : \\\"app\\\", \\\"value\\\" : \\\"${env.APP_NAME}\\\" }, { \\\"context\\\" : \\\"CONTEXTLESS\\\", \\\"key\\\" : \\\"environment\\\", \\\"value\\\" : \\\"dev\\\" } ] }] }, \\\"deploymentName\\\":\\\"${env.JOB_NAME}\\\", \\\"deploymentVersion\\\":\\\"${_VERSION}\\\", \\\"deploymentProject\\\":\\\"\\\", \\\"ciBackLink\\\":\\\"${env.BUILD_URL}\\\", \\\"source\\\":\\\"Jenkins\\\", \\\"customProperties\\\": { \\\"Jenkins Build Number\\\": \\\"${env.BUILD_ID}\\\",  \\\"Git commit\\\": \\\"${env.GIT_COMMIT}\\\" } }\" "
-          }
-        }
-    }*/
+
      stage('Start NeoLoad infrastructure') {
 
                                 steps {
@@ -145,7 +133,7 @@ pipeline {
                                            -e CONTROLLER_ZONE_ID=defaultzone \
                                            -e AS_CODE_FILES=payment_neoload.yaml \
                                            -e LG_ZONE_IDS=defaultzone:1 \
-                                           --network ${APP_NAME} \
+                                           --network ${APP_NAME} --user root \
                                             neotys/neoload-web-test-launcher:latest"
           /*script {
               neoloadRun executable: '/home/neoload/neoload/bin/NeoLoadCmd',
