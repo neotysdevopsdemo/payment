@@ -104,6 +104,7 @@ pipeline {
 
 
       steps {
+        sh "mkdir $WORKSPACE/test/neoload/load_template/custom-resources/"
 
         sh "cp $WORKSPACE/monspec/payment_anomalieDection.json  $WORKSPACE/test/neoload/load_template/custom-resources/"
 
@@ -122,7 +123,7 @@ pipeline {
         sh "cp $WORKSPACE/test/neoload/payment_neoload.yaml $WORKSPACE/test/neoload/load_template/"
         sh "cd $WORKSPACE/test/neoload/load_template/ ; zip -r $WORKSPACE/test/neoload/neoload_project/neoloadproject.zip ./*"
 
-
+        sh "docker pull   neotys/neoload-web-test-launcher:latest"
 
         sleep 90
              sh "docker run --rm \
