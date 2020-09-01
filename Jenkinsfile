@@ -12,13 +12,11 @@ pipeline {
     TAG = "neotysdevopsdemo/${APP_NAME}"
     TAG_DEV = "${TAG}:DEV-${VERSION}"
     TAG_STAGING = "${TAG}-stagging:${VERSION}"
-    DYNATRACEID="${env.DT_ACCOUNTID}.live.dynatrace.com"
+    DYNATRACEID="https://${env.DT_ACCOUNTID}.live.dynatrace.com/"
     DYNATRACEAPIKEY="${env.DT_API_TOKEN}"
     NLAPIKEY="${env.NL_WEB_API_KEY}"
     NL_DT_TAG="app:${env.APP_NAME},environment:dev"
-    OUTPUTSANITYCHECK="$WORKSPACE/infrastructure/sanitycheck.json"
     NEOLOAD_ASCODEFILE="$WORKSPACE/test/neoload/payment_neoload.yaml"
-    NEOLOAD_ANOMALIEDETECTIONFILE="$WORKSPACE/monspec/payment_anomalieDection.json"
     DOCKER_COMPOSE_TEMPLATE="$WORKSPACE/infrastructure/infrastructure/neoload/docker-compose.template"
     DOCKER_COMPOSE_LG_FILE = "$WORKSPACE/infrastructure/infrastructure/neoload/docker-compose-neoload.yml"
     BASICCHECKURI="health"
@@ -100,57 +98,90 @@ pipeline {
 
                            }
 
-    stage('Run functional check in dev') {
+
+    stage('NeoLoad Test')
+        {
+         agent {
+         docker {
+             image 'python:3-alpine'
+             reuseNode true
+          }
+
+            }
+        stages {
+             stage('Get NeoLoad CLI') {
+                          steps {
+                            withEnv(["HOME=${env.WORKSPACE}"]) {
+
+                             sh '''
+                                  export PATH=~/.local/bin:$PATH
+                                  pip3 install neoload
+                                  neoload --version
+                              '''
+
+                            }
+                          }
+            }
+            stage('Run functional check in dev') {
 
 
-      steps {
-        sh "mkdir $WORKSPACE/test/neoload/load_template/custom-resources/"
+              steps {
+                sh "mkdir $WORKSPACE/test/neoload/load_template/custom-resources/"
 
-        sh "cp $WORKSPACE/monspec/payment_anomalieDection.json  $WORKSPACE/test/neoload/load_template/custom-resources/"
-
-         sh "sed -i 's/CHECK_TO_REPLACE/${BASICCHECKURI}/'  $WORKSPACE/test/neoload/payment_neoload.yaml"
-         sh "sed -i 's/PAYMENT_TO_REPLACE/${PAYMENTURI}/'  $WORKSPACE/test/neoload/payment_neoload.yaml"
-         sh "sed -i 's/HOST_TO_REPLACE/${env.APP_NAME}/'  $WORKSPACE/test/neoload/payment_neoload.yaml"
-         sh "sed -i 's/PORT_TO_REPLACE/80/' $WORKSPACE/test/neoload/payment_neoload.yaml"
-         sh "sed -i 's/DTID_TO_REPLACE/${DYNATRACEID}/'  $WORKSPACE/test/neoload/payment_neoload.yaml"
-         sh "sed -i 's/APIKEY_TO_REPLACE/${DYNATRACEAPIKEY}/'  $WORKSPACE/test/neoload/payment_neoload.yaml"
-         sh "sed -i 's,JSONFILE_TO_REPLACE,payment_anomalieDection.json,'  $WORKSPACE/test/neoload/payment_neoload.yaml"
-         sh "sed -i 's/TAGS_TO_REPLACE/${NL_DT_TAG}/'  $WORKSPACE/test/neoload/payment_neoload.yaml"
-         sh "sed -i 's,OUTPUTFILE_TO_REPLACE,$WORKSPACE/infrastructure/sanitycheck.json,'  $WORKSPACE/test/neoload/payment_neoload.yaml"
-
-
-        sh "mkdir $WORKSPACE/test/neoload/neoload_project"
-        sh "cp $WORKSPACE/test/neoload/payment_neoload.yaml $WORKSPACE/test/neoload/load_template/"
-        sh "cd $WORKSPACE/test/neoload/load_template/ ; zip -r $WORKSPACE/test/neoload/neoload_project/neoloadproject.zip ./*"
+                 sh "sed -i 's/CHECK_TO_REPLACE/${BASICCHECKURI}/'  $WORKSPACE/test/neoload/payment_neoload.yaml"
+                 sh "sed -i 's/PAYMENT_TO_REPLACE/${PAYMENTURI}/'  $WORKSPACE/test/neoload/payment_neoload.yaml"
+                 sh "sed -i 's/HOST_TO_REPLACE/${env.APP_NAME}/'  $WORKSPACE/test/neoload/payment_neoload.yaml"
+                 sh "sed -i 's/PORT_TO_REPLACE/80/' $WORKSPACE/test/neoload/payment_neoload.yaml"
+                 sh "sed -i 's/DTID_TO_REPLACE/${DYNATRACEID}/'  $WORKSPACE/test/neoload/payment_neoload.yaml"
+                 sh "sed -i 's/APIKEY_TO_REPLACE/${DYNATRACEAPIKEY}/'  $WORKSPACE/test/neoload/payment_neoload.yaml"
+                 sh "sed -i 's/TAGS_TO_REPLACE/${NL_DT_TAG}/'  $WORKSPACE/test/neoload/payment_neoload.yaml"
 
 
 
-        sleep 90
-             sh "docker run --rm \
-                                           -v $WORKSPACE/test/neoload/neoload_project/:/neoload-project \
-                                           -e NEOLOADWEB_TOKEN=$NLAPIKEY \
-                                           -e TEST_RESULT_NAME=FuncCheck_payment_${VERSION}_${BUILD_NUMBER} \
-                                           -e SCENARIO_NAME=paymentLoad \
-                                           -e CONTROLLER_ZONE_ID=defaultzone \
-                                           -e AS_CODE_FILES=payment_neoload.yaml \
-                                           -e LG_ZONE_IDS=defaultzone:1 \
-                                           --network ${APP_NAME} --user root \
-                                            neotys/neoload-web-test-launcher:latest"
-          /*script {
-              neoloadRun executable: '/home/neoload/neoload/bin/NeoLoadCmd',
-                      project: "$WORKSPACE/test/neoload/load_template/load_template.nlp",
-                      testName: 'FuncCheck_payment_${VERSION}_${BUILD_NUMBER}',
-                      testDescription: 'FuncCheck_payment_${VERSION}_${BUILD_NUMBER}',
-                      commandLineOption: "-project  $WORKSPACE/test/neoload/payment_neoload.yaml -nlweb -L paymentLoad=$WORKSPACE/infrastructure/infrastructure/neoload/lg/remote.txt -L Population_Dynatrace_Integration=$WORKSPACE/infrastructure/infrastructure/neoload/lg/local.txt -nlwebToken $NLAPIKEY -variables host=payment,port=80",
-                      scenario: 'paymentLoad', sharedLicense: [server: 'NeoLoad Demo License', duration: 2, vuCount: 200],
-                      trendGraphs: [
-                              [name: 'Limit test Catalogue API Response time', curve: ['CatalogueList>Actions>Get Catalogue List'], statistic: 'average'],
-                              'ErrorRate'
-                      ]
-          }*/
 
 
-      }
+                sleep 90
+
+                   sh """
+                          export PATH=~/.local/bin:$PATH
+                          neoload \
+                          login --workspace "Default Workspace" $NLAPIKEY \
+                          test-settings  --zone defaultzone --scenario paymentLoad  use PaymentDynatrace \
+                          project --path  $WORKSPACE/test/neoload/ upload
+                      """
+
+
+              }
+            }
+         stage('Run Test') {
+                  steps {
+                    withEnv(["HOME=${env.WORKSPACE}"]) {
+                      sh """
+                           export PATH=~/.local/bin:$PATH
+                           neoload run \
+                          --return-0 \
+                          --as-code payment_neoload.yaml \
+                            PaymentDynatrace
+                         """
+                    }
+                  }
+         }
+         stage('Generate Test Report') {
+                  steps {
+                    withEnv(["HOME=${env.WORKSPACE}"]) {
+                        sh """
+                             export PATH=~/.local/bin:$PATH
+                             neoload test-results junitsla
+                           """
+                    }
+                  }
+                  post {
+                      always {
+                          junit 'junit-sla.xml'
+                      }
+                  }
+        }
+       }
     }
     stage('Mark artifact for staging namespace') {
 
