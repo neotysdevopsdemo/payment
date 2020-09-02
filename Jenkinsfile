@@ -126,7 +126,7 @@ pipeline {
 
 
               steps {
-                sh "mkdir $WORKSPACE/test/neoload/load_template/custom-resources/"
+                  withEnv(["HOME=${env.WORKSPACE}"]) {
 
                  sh "sed -i 's/CHECK_TO_REPLACE/${BASICCHECKURI}/'  $WORKSPACE/test/neoload/payment_neoload.yaml"
                  sh "sed -i 's/PAYMENT_TO_REPLACE/${PAYMENTURI}/'  $WORKSPACE/test/neoload/payment_neoload.yaml"
@@ -149,7 +149,7 @@ pipeline {
                           test-settings  --zone defaultzone --scenario paymentLoad  use PaymentDynatrace \
                           project --path  $WORKSPACE/test/neoload/ upload
                       """
-
+                }
 
               }
             }
