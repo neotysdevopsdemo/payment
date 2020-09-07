@@ -146,7 +146,7 @@ pipeline {
                           export PATH=~/.local/bin:$PATH
                           neoload \
                           login --workspace "Default Workspace" $NLAPIKEY \
-                          test-settings  --zone defaultzone --scenario paymentLoad  create PaymentDynatrace \
+                          test-settings  --zone defaultzone --scenario paymentLoad  use PaymentDynatrace \
                           project --path  $WORKSPACE/test/neoload/ upload
                       """
                 }
