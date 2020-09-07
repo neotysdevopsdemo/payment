@@ -132,7 +132,7 @@ pipeline {
                  sh "sed -i 's/PAYMENT_TO_REPLACE/${PAYMENTURI}/'  $WORKSPACE/test/neoload/payment_neoload.yaml"
                  sh "sed -i 's/HOST_TO_REPLACE/${env.APP_NAME}/'  $WORKSPACE/test/neoload/payment_neoload.yaml"
                  sh "sed -i 's/PORT_TO_REPLACE/80/' $WORKSPACE/test/neoload/payment_neoload.yaml"
-                 sh "sed -i 's/DTID_TO_REPLACE/${DYNATRACEID}/'  $WORKSPACE/test/neoload/payment_neoload.yaml"
+                 sh "sed -i 's,DTID_TO_REPLACE,${DYNATRACEID},'  $WORKSPACE/test/neoload/payment_neoload.yaml"
                  sh "sed -i 's/APIKEY_TO_REPLACE/${DYNATRACEAPIKEY}/'  $WORKSPACE/test/neoload/payment_neoload.yaml"
                  sh "sed -i 's/TAGS_TO_REPLACE/${NL_DT_TAG}/'  $WORKSPACE/test/neoload/payment_neoload.yaml"
 
