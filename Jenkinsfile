@@ -166,21 +166,7 @@ pipeline {
                     }
                   }
          }
-         stage('Generate Test Report') {
-                  steps {
-                    withEnv(["HOME=${env.WORKSPACE}"]) {
-                        sh """
-                             export PATH=~/.local/bin:$PATH
-                             neoload test-results junitsla
-                           """
-                    }
-                  }
-                  post {
-                      always {
-                          junit 'junit-sla.xml'
-                      }
-                  }
-        }
+
        }
     }
     stage('Mark artifact for staging namespace') {
