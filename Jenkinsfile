@@ -116,6 +116,8 @@ pipeline {
 
                              sh '''
                                   export PATH=~/.local/bin:$PATH
+                                  pip install --upgrade pip
+                                  pip install pyparsing
                                   pip3 install neoload
                                   neoload --version
                               '''
